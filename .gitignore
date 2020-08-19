@@ -1,0 +1,7 @@
+bin/
+obj/
+
+.vscode/settings.json
+
+lastuploadtime.bin
+*.db

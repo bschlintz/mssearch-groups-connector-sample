@@ -1,0 +1,35 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.0",
+  "body": [
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": 6,
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "__{displayName} ({id})__",
+              "color": "accent",
+              "size": "medium",
+              "spacing": "none",
+              "$when": "{displayName != \"\"}"
+            },
+            {
+              "type": "TextBlock",
+              "text": "{description}",
+              "wrap": true,
+              "maxLines": 3,
+              "$when": "{description != \"\"}"
+            }
+          ],
+          "horizontalAlignment": "Center",
+          "spacing": "none"
+        }
+      ]
+    }
+  ],
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+}
