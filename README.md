@@ -2,6 +2,8 @@
 
 This .NET Core application shows how to use the Microsoft Graph indexing API to create a connection to the Microsoft Search service and index custom items. The sample indexes all groups from the current Azure Active Directory tenant and applies ACLs such that each group result can only be see by members of that group.
 
+Adapted from [microsoftgraph/msgraph-search-connector-sample](https://github.com/microsoftgraph/msgraph-search-connector-sample).
+
 ## Prerequisites
 
 - .NET 3.1 SDK
