@@ -7,8 +7,6 @@ Adapted from [microsoftgraph/msgraph-search-connector-sample](https://github.com
 ## Prerequisites
 
 - .NET 3.1 SDK
-- [Entity Framework Core Tools](https://docs.microsoft.com/ef/core/miscellaneous/cli/dotnet) (`dotnet tool install --global dotnet-ef`)
-- Some way to update a SQLite database. For example, the [DB Browser for SQLite](https://sqlitebrowser.org/).
 
 ## Register an app in Azure portal
 
@@ -19,11 +17,11 @@ In this step you'll register an application in the Azure AD admin center. This i
 1. Select **New registration**.
 1. Complete the **Register an application** form with the following values, then select **Register**.
 
-    - **Name:** `Parts Inventory Connector`
+    - **Name:** `Groups Connector`
     - **Supported account types:** `Accounts in this organizational directory only (Microsoft only - Single tenant)`
     - **Redirect URI:** Leave blank
 
-1. On the **Parts Inventory Connector** page, copy the value of **Application (client) ID**, you'll need it in the next section.
+1. On the **Groups Connector** page, copy the value of **Application (client) ID**, you'll need it in the next section.
 1. Copy the value of **Directory (tenant) ID**, you'll need it in the next section.
 1. Select **API Permissions** under **Manage**.
 1. Select **Add a permission**, then select **Microsoft Graph**.
@@ -35,7 +33,7 @@ In this step you'll register an application in the Azure AD admin center. This i
 
 ## Configure the app
 
-1. Open your command line interface (CLI) in the directory where **PartsInventoryConnector.csproj** is located.
+1. Open your command line interface (CLI) in the directory where **GroupsConnector.csproj** is located.
 1. Run the following command to initialize [user secrets](https://docs.microsoft.com/aspnet/core/security/app-secrets) for the project.
 
     ```dotnetcli
@@ -49,19 +47,6 @@ In this step you'll register an application in the Azure AD admin center. This i
     dotnet user-secrets set appSecret "YOUR_APP_SECRET_HERE"
     dotnet user-secrets set tenantId "YOUR_TENANT_ID_HERE"
     ```
-
-## Initialize the database
-
-```dotnetcli
-dotnet ef database update
-```
-
-### Delete and reset database
-
-```dotnetcli
-dotnet ef database drop
-dotnet ef database update
-```
 
 ## Run the app
 
@@ -96,7 +81,7 @@ Create a result type at the organization level following the instructions in [Cu
 
 ## Search for results
 
-In this step you'll search for parts in SharePoint.
+In this step you'll search for groups in SharePoint.
 
 1. Go to your root SharePoint site for your tenant.
 1. Using the search box at the top of the page, search for `*`.

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using CsvHelper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using GroupsConnector.Authentication;
@@ -23,7 +21,7 @@ namespace GroupsConnector
 
         private static ExternalConnection _currentConnection;
 
-        private static string _tenantId;
+        private static IConfigurationRoot _appConfig;
 
         static async Task Main(string[] args)
         {
@@ -32,39 +30,22 @@ namespace GroupsConnector
                 Output.WriteLine("Groups Search Connector\n");
 
                 // Load configuration from appsettings.json
-                var appConfig = LoadAppSettings();
-                if (appConfig == null)
+                _appConfig = LoadAppSettings();
+                if (_appConfig == null)
                 {
                     Output.WriteLine(Output.Error, "Missing or invalid user secrets");
                     Output.WriteLine(Output.Error, "Please see README.md for instructions on configuring the application.");
                     return;
                 }
 
-                // Save tenant ID for setting ACL on items
-                _tenantId = appConfig["tenantId"];
-
                 // Initialize the auth provider
                 var authProvider = new ClientCredentialAuthProvider(
-                    appConfig["appId"],
-                    appConfig["tenantId"],
-                    appConfig["appSecret"]
+                    _appConfig["appId"],
+                    _appConfig["tenantId"],
+                    _appConfig["appSecret"]
                 );
 
                 _graphHelper = new GraphHelper(authProvider);
-
-                // Check if the database is empty
-                using (var db = new ApplianceDbContext())
-                {
-                    if (db.Groups.IgnoreQueryFilters().Count() <= 0)
-                    {
-                        Output.WriteLine(Output.Warning, "Database empty, fetching all groups from Graph");
-
-                        // Get all AAD Groups
-                        var groups = await _graphHelper.GetAllGroups();
-                        db.AddRange(groups);
-                        db.SaveChanges();
-                    }
-                }
 
                 do
                 {
@@ -88,10 +69,10 @@ namespace GroupsConnector
                             await GetSchemaAsync();
                             break;
                         case MenuChoice.PushUpdatedItems:
-                            await UpdateItemsFromDatabase(true);
+                            await UpdateItems(true);
                             break;
                         case MenuChoice.PushAllItems:
-                            await UpdateItemsFromDatabase(false);
+                            await UpdateItems(false);
                             break;
                         case MenuChoice.Exit:
                             // Exit the program
@@ -282,7 +263,7 @@ namespace GroupsConnector
             }
         }
 
-        private static async Task UpdateItemsFromDatabase(bool uploadModifiedOnly)
+        private static async Task UpdateItems(bool uploadModifiedOnly)
         {
             if (_currentConnection == null)
             {
@@ -295,34 +276,31 @@ namespace GroupsConnector
 
             var newUploadTime = DateTime.UtcNow;
 
-            using (var db = new ApplianceDbContext())
+            // Get all AAD Groups
+            var groups = await _graphHelper.GetAllGroups();
+
+            if (uploadModifiedOnly)
             {
-                if (uploadModifiedOnly)
-                {
-                    // Load the last upload timestamp
-                    var lastUploadTime = GetLastUploadTime();
-                    Output.WriteLine(Output.Info, $"Uploading changes since last upload at {lastUploadTime.ToLocalTime().ToString()}");
+                // Load the last upload timestamp
+                var lastUploadTime = GetLastUploadTime();
+                Output.WriteLine(Output.Info, $"Uploading changes since last upload at {lastUploadTime.ToLocalTime().ToString()}");
 
-                    groupsToUpload = db.Groups
-                        .Where(p => EF.Property<DateTime>(p, "LastUpdated") > lastUploadTime)
-                        .ToList();
+                groupsToUpload = groups
+                    .Where(p => p.DeletedDateTime == DateTime.MinValue && p.CreatedDateTime > lastUploadTime)
+                    .ToList();
 
-                    groupsToDelete = db.Groups
-                        .IgnoreQueryFilters() // Normally items with IsDeleted = 1 aren't included in queries
-                        .Where(p => (EF.Property<bool>(p, "IsDeleted") && EF.Property<DateTime>(p, "LastUpdated") > lastUploadTime))
-                        .ToList();
-                }
-                else
-                {
-                    groupsToUpload = db.Groups
-                        .ToList();
-
-                    groupsToDelete = db.Groups
-                        .IgnoreQueryFilters() // Normally items with IsDeleted = 1 aren't included in queries
-                        .Where(p => EF.Property<bool>(p, "IsDeleted"))
-                        .ToList();
-                }
+                groupsToDelete = groups
+                    .Where(p => p.DeletedDateTime != DateTime.MinValue && p.DeletedDateTime > lastUploadTime)
+                    .ToList();            
             }
+            else
+            {
+                groupsToUpload = groups
+                    .Where(p => p.DeletedDateTime == DateTime.MinValue)
+                    .ToList();
+
+                groupsToDelete = new List<AADGroup>();
+            }            
 
             Output.WriteLine(Output.Info, $"Processing {groupsToUpload.Count()} add/updates, {groupsToDelete.Count()} deletes");
             bool success = true;

@@ -172,7 +172,7 @@ namespace GroupsConnector.Graph
         public async Task<List<AADGroup>> GetAllGroups()
         {
             var groups = new List<Group>();
-            var selectProperties = new string[] { "id", "displayName", "description" };
+            var selectProperties = new string[] { "id", "displayName", "description", "createdDateTime", "deletedDateTime" };
             var request = _graphClient.Groups.Request().Select(String.Join(",", selectProperties));
 
             var result = await request.GetAsync();
@@ -191,7 +191,9 @@ namespace GroupsConnector.Graph
                 {
                     Id = group.Id,
                     DisplayName = group.DisplayName,
-                    Description = group.Description
+                    Description = group.Description,
+                    CreatedDateTime = group.CreatedDateTime.Value.DateTime,
+                    DeletedDateTime = group.DeletedDateTime != null ? group.DeletedDateTime.Value.DateTime : DateTime.MinValue
                 });
             }
 

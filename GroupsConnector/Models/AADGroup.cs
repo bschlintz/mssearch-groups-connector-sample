@@ -14,6 +14,8 @@ namespace GroupsConnector.Models
         public string Id { get; set; }
         public string DisplayName { get; set; }
         public string Description { get; set; }
+        public DateTime CreatedDateTime { get; set; }
+        public DateTime DeletedDateTime { get; set; }
 
         public Properties AsExternalItemProperties()
         {
@@ -23,7 +25,7 @@ namespace GroupsConnector.Models
                 {
                     { "id", Id },
                     { "displayName", DisplayName },
-                    { "description", Description },
+                    { "description", Description }
                 }
             };
 
