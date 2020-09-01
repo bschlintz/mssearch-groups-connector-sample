@@ -332,7 +332,7 @@ namespace GroupsConnector
 
                 try
                 {
-                    Output.Write(Output.Info, $"Uploading group {group.Id}...");
+                    Output.Write(Output.Info, $"Uploading group {group.DisplayName} ({group.Id})...");
                     await _graphHelper.AddOrUpdateItem(_currentConnection.Id, newItem);
                     Output.WriteLine(Output.Success, "DONE");
                 }
